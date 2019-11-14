@@ -82,3 +82,7 @@ network:
 $ sudo netplan try
 
 Если всё норм, то будет предложено сохранить конфигурацию и перезапустить systemd-networkd по нажатию Enter. Нажимаем и проверяем. Всё работает!
+
+Ссылка на примеры по работе с netplan:
+
+https://netplan.io/examples
