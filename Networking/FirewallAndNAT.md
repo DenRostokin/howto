@@ -122,6 +122,16 @@ $ sudo iptables -t nat -A POSTROUTING -o <interface> -s <subnet 192.168.1.1/24> 
 3. DNAT используется для доступа из интернета на компы, находящиеся за роутером в локальной сети.
 
 $ sudo iptables -t nat -A PREROUTING -i <interface> -p tcp --dport 3000 -j DNAT --to-destination <IP-address of the local machine>
+  
+Чтобы удалить правило из определённой таблицы, вводим:
+
+$ sudo iptables -t <table_name> -D <chain> <rule_number>
+  
+Перед этим нужно посмотреть порядковый номер правила. Для этого вводим:
+
+$ sudo iptables -S -t nat
+
+Считаем номер правила и вводим в команду выше!
 
 ############################################
 Все указанные настройки iptables сохранятся только до перезагрузки. После перезагрузки все изменения будут стёрты. Для сохранения используется команда iptables-save (как минимум, в Utuntu и Arch Linux). Эта команда сохраняет изменения в файл.
