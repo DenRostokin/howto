@@ -86,3 +86,53 @@ $ sudo mount /dev/sdb1 /mnt/usb/boot
 $ sudo rsync --progress -av /mnt/backup/ /mnt/usb
 
 ВАЖНО! в пути /mnt/backup/ обязательно нужен завершающий слэш, иначе в /mnt/usb создастся папка backup, в которой уже будут находиться системные файлы.
+
+Чтобы корректно создать загрузочную запись, монтируем рабочие каталоги к нашему будующему root-каталогу. Каталоги /dev и /proc сейчас используются live-системой, поэтому используем параметр --bind, чтобы они были доступны сразу в 2-х местах:
+
+$ sudo mount --bind /dev /mnt/usb/dev
+$ sudo mount --bind /proc /mnt/usb/proc
+$ sudo mount --bind /sys /mnt/usb/sys
+
+Переключаемся в новую систему, использую chroot:
+
+$ sudo chroot /mnt/usb
+
+Редактируем файл /etc/fstab. Узнать текущие UUID разделов можно командой blkid:
+
+$ sudo blkid
+
+Теперь устанавливаем загрузчик systemd-boot:
+
+\# bootctl --path=/boot install
+
+Устанавливаем параметры загрузки:
+
+\# echo 'default arch' >> /boot/loader/loader.conf
+\# echo 'timeout 5' >> /boot/loader/loader.conf
+
+Создаём файл arch.conf. Имя файла должно быть таким же, как и в параметре default arch в файле /boot/loader/loader.conf!
+
+\# touch /boot/loader/entries/arch.conf
+
+Добавляем в этот файл следующие строки:
+
+\# echo 'title Arch Linux' >> /boot/loader/entries/arch.conf
+\# echo 'linux /vmlinuz-linux' >> /boot/loader/entries/arch.conf
+\# echo 'initrd /initramfs-linux.img' >> /boot/loader/entries/arch.conf
+\# echo 'options cryptdevice=UUID=<UUID>:vg0 root=/dev/mapper/vg0-root resume=/dev/mapper/vg0-swap rw intel_pstate=no_hwp' >> /boot/loader/entries/arch.conf
+
+Вместо <UUID> нужно указать UUID раздела жёсткого диска, на котором установлем криптоконтейнер, например, /dev/sdb2.
+
+Выходим из chroot. Размонтируем /mnt/usb/dev, /mnt/usb/proc и /mnt/usb/sys. Затем размонтируем раздел /dev/sdb1 и размонтируем логический раздел /dev/mapper/vg0-root. Выключаем раздел подкачки /dev/mapper/vg0-swap:
+
+$ sudo swapoff /dev/mapper/vg0-swap
+
+После того, как все разделы размонтированы, деактивируем виртуальную группу:
+
+$ sudo vgchange -a n vg0
+
+Закрываем криптоконтейнер:
+
+$ sudo cryptsetup luksClose usb
+
+Перезагружаемся!
