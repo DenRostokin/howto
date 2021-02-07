@@ -87,6 +87,8 @@ $ sudo rsync --progress -av /mnt/backup/ /mnt/usb
 
 ВАЖНО! в пути /mnt/backup/ обязательно нужен завершающий слэш, иначе в /mnt/usb создастся папка backup, в которой уже будут находиться системные файлы.
 
+ВАЖНО! ядро (vmlinuz-linux) и initramfs.img (вместе с initramfs-fallback.img) должны находиться в /mnt/usb/boot/ директории, иначе загрузчик не сможет запустить ядро из зашифрованного раздела.
+
 Чтобы корректно создать загрузочную запись, монтируем рабочие каталоги к нашему будующему root-каталогу. Каталоги /dev и /proc сейчас используются live-системой, поэтому используем параметр --bind, чтобы они были доступны сразу в 2-х местах:
 
 $ sudo mount --bind /dev /mnt/usb/dev
@@ -100,6 +102,20 @@ $ sudo chroot /mnt/usb
 Редактируем файл /etc/fstab. Узнать текущие UUID разделов можно командой blkid:
 
 $ sudo blkid
+
+Также добавляем в fstab следующую строку:
+
+tmpfs	/tmp	tmpfs	defaults,noatime,mode=1777	0	0
+
+Сконфигурируем mkinitcpio c необходимыми для образа initrd модулями. В файл /etc/mkinitcpio.conf:
+
+1. Добавляем ext4 в MODULES
+2. Добавляем encrypt и lvm2 в HOOKS до filesystems
+3. Добавляем resume после lvm2 (должно быть после udev)
+
+Пересобираем образ initrd:
+
+$ sudo mkinitcpio -p linux
 
 Теперь устанавливаем загрузчик systemd-boot:
 
