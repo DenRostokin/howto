@@ -36,7 +36,7 @@ $ sudo pvscan
 
 $ sudo pvdisplay
 
-Далее создаём виртуальную группу разделов:
+Далее создаём виртуальную группу разделов (если в системе уже есть группа vg0, то нужно создавать группу vg1, и так далее):
 
 $ sudo vgcreate vg0 /dev/mapper/usb
 
@@ -50,7 +50,7 @@ $ sudo vgchange -a n <volume_group_name>
 
 Осталось создать виртуальные разделы. Создадим 2 раздела:
 
-1. Раздел подкачки (swap) размером 8Гб
+1. Раздел подкачки (swap) размером 8Гб (в зависимости от количества оперативной памяти. Если оперативки 16Г, то лучше и под swap-раздел выделить 16Г для ждущего режима)
 2. root-раздел подо всю систему
 
 $ sudo lvcreate --size 8G vg0 --name swap
@@ -124,7 +124,7 @@ $ sudo mkinitcpio -p linux
 Устанавливаем параметры загрузки:
 
 \# echo 'default arch' >> /boot/loader/loader.conf
-\# echo 'timeout 5' >> /boot/loader/loader.conf
+\# echo 'timeout 3' >> /boot/loader/loader.conf
 
 Создаём файл arch.conf. Имя файла должно быть таким же, как и в параметре default arch в файле /boot/loader/loader.conf!
 
